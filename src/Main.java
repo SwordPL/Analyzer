@@ -1,10 +1,14 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import org.pf.tools.cda.base.model.ClassInformation;
 import org.pf.tools.cda.base.model.ClassPackage;
 import org.pf.tools.cda.base.model.Workset;
 import org.pf.tools.cda.base.model.workset.ClasspathPartDefinition;
 import org.pf.tools.cda.core.init.WorksetInitializer;
+import org.pfsw.odem.TypeClassification;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,9 +38,9 @@ public class Main {
         String userPattern = sc.nextLine();
         List<ClassPackage> filtered = filterPackages(workset, userPattern);
 
-        logger.info("PHASE 5: GATHERING CLASSES");
+        logger.info("PHASE 5: CREATING DEPENDENCY GRAPH");
         List<ClassInformation> classes = getClassesInfo(filtered);
-
+        DirectedGraph<ClassInformation, DefaultEdge> graph = createGraph(classes);
     }
 
     private static Workset createWorkset(String classpath) {
@@ -67,5 +71,17 @@ public class Main {
             Collections.addAll(classes, cp.getAllContainedClasses());
         }
         return classes;
+    }
+
+    private static DirectedGraph<ClassInformation, DefaultEdge> createGraph(List<ClassInformation> classes) {
+        DirectedGraph<ClassInformation, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
+        classes.forEach(g::addVertex);
+        classes.forEach(classInfo -> classInfo.getDirectReferredTypes()
+                        .stream()
+                        .filter(dependency -> dependency.getClassification() == TypeClassification.CLASS)
+                        .forEach(dependency -> g.addEdge(classInfo, (ClassInformation) dependency))
+        );
+
+        return g;
     }
 }
