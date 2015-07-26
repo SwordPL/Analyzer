@@ -15,7 +15,7 @@ public class Analyzer {
         this.graph = graph;
     }
 
-    private void analyze() {
+    public void analyze() {
         analyzeDistribution();
         analyzeEfficiency();
         analyzeTransitivity();
@@ -47,21 +47,20 @@ public class Analyzer {
                 }
             }
         }
-        double T = numberOfTriangles/numberOfConnectedTriples;
-        logger.info("Transitivity:");
-        logger.info("C = " + T);
+        double T = (double)numberOfTriangles/numberOfConnectedTriples;
+        logger.info("Transitivity: C = " + T);
     }
 
     private void analyzeEfficiency() {
         //E
         double sum = 0;
 
-        FloydWarshallShortestPaths pathFinder = new FloydWarshallShortestPaths(graph);
+        FloydWarshallShortestPaths<ClassInformation, DefaultEdge> pathFinder = new FloydWarshallShortestPaths<>(graph);
         ConnectivityInspector<ClassInformation, DefaultEdge> connectivityInspector
                 = new ConnectivityInspector<>(graph);
         for (ClassInformation x: graph.vertexSet()) {
             for (ClassInformation y: graph.vertexSet()) {
-                if (x.equals(y) || connectivityInspector.pathExists(x, y) == false) {
+                if (x.equals(y) || !connectivityInspector.pathExists(x, y)) {
                     continue;
                 }
                 sum += 1/pathFinder.shortestDistance(x, y);
@@ -69,8 +68,7 @@ public class Analyzer {
         }
         int numberOfVertices = graph.vertexSet().size();
         double E = sum * 1/(numberOfVertices*(numberOfVertices-1));
-        logger.info("Efficiency:");
-        logger.info("E = " + E);
+        logger.info("Efficiency: E = " + E);
     }
 
     private void analyzeDistribution() {
