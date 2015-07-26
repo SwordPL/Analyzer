@@ -7,13 +7,14 @@ import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.pf.tools.cda.base.model.ClassInformation;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Analyzer {
     static final Logger logger = LogManager.getLogger(Analyzer.class);
 
-    private DirectedGraph<ClassInformation, DefaultEdge> graph;
+    private final DirectedGraph<ClassInformation, DefaultEdge> graph;
 
     public Analyzer(DirectedGraph<ClassInformation, DefaultEdge> graph) {
         this.graph = graph;
@@ -44,7 +45,7 @@ public class Analyzer {
         }
         int numberOfVertices = undirected.vertexSet().size();
         double l = sum * 1/(numberOfVertices*(numberOfVertices-1));
-        logger.info("Average distance: l = " + l);
+        logger.info("Average distance: l = {}", l);
     }
 
     private void analyzeTransitivity () {
@@ -69,7 +70,7 @@ public class Analyzer {
             }
         }
         double T = (double)numberOfTriangles/numberOfConnectedTriples;
-        logger.info("Transitivity: C = " + T);
+        logger.info("Transitivity: C = {}", T);
     }
 
     private void analyzeEfficiency() {
@@ -89,18 +90,30 @@ public class Analyzer {
         }
         int numberOfVertices = graph.vertexSet().size();
         double E = sum * 1/(numberOfVertices*(numberOfVertices-1));
-        logger.info("Efficiency: E = " + E);
+        logger.info("Efficiency: E = {}", E);
     }
 
     private void analyzeDistribution() {
-        // k in
-        List<Integer> kInList = new ArrayList<>();
-        List<Integer> kOutList = new ArrayList<>();
+        Map<Integer, AtomicInteger> kSumMap = new HashMap<>();
+        Map<Integer, AtomicInteger> kInMap = new HashMap<>();
+        Map<Integer, AtomicInteger> kOutMap = new HashMap<>();
         for (ClassInformation x: graph.vertexSet()) {
-            kInList.add(graph.inDegreeOf(x));
-            kOutList.add(graph.outDegreeOf(x));
-        }
+            int inDeg = graph.inDegreeOf(x);
+            int outDeg = graph.outDegreeOf(x);
+            kSumMap.putIfAbsent(inDeg, new AtomicInteger(0));
+            kSumMap.get(inDeg).incrementAndGet();
+            kSumMap.putIfAbsent(outDeg, new AtomicInteger(0));
+            kSumMap.get(outDeg).incrementAndGet();
 
+            kInMap.putIfAbsent(inDeg, new AtomicInteger(0));
+            kInMap.get(inDeg).incrementAndGet();
+
+            kOutMap.putIfAbsent(outDeg, new AtomicInteger(0));
+            kOutMap.get(outDeg).incrementAndGet();
+        }
+        for (Integer i : kSumMap.keySet()) {
+            System.out.println(i + ";" + kSumMap.get(i).get());
+        }
         logger.info("Distribution: TBD");
     }
 }

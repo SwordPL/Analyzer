@@ -44,6 +44,10 @@ public class Main {
         logger.info("PHASE 6: CHOOSING Largest Connected Component");
         Set<ClassInformation> lccSet = getLCCSet(graph);
         graph = createGraph(lccSet);
+
+        logger.info("PHASE 7: ANALYSIS");
+        Analyzer analyzer = new Analyzer(graph);
+        analyzer.analyze();
     }
 
     private static Workset createWorkset(String classpath) {
