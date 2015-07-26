@@ -3,6 +3,7 @@ import org.apache.logging.log4j.Logger;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
+import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.pf.tools.cda.base.model.ClassInformation;
 
@@ -23,7 +24,24 @@ public class Analyzer {
     }
 
     private void analyzeAverageDistance () {
-        logger.info("Average distance: TBD");
+        //l
+        double sum = 0;
+        AsUndirectedGraph<ClassInformation, DefaultEdge> undirected = new AsUndirectedGraph<>(graph);
+        FloydWarshallShortestPaths<ClassInformation, DefaultEdge> pathFinder
+                = new FloydWarshallShortestPaths<>(undirected);
+        ConnectivityInspector<ClassInformation, DefaultEdge> connectivityInspector
+                = new ConnectivityInspector<>(undirected);
+        for (ClassInformation x: undirected.vertexSet()) {
+            for (ClassInformation y: undirected.vertexSet()) {
+                if (x.equals(y) || !connectivityInspector.pathExists(x, y)) {
+                    continue;
+                }
+                sum += pathFinder.shortestDistance(x, y);
+            }
+        }
+        int numberOfVertices = undirected.vertexSet().size();
+        double l = sum * 1/(numberOfVertices*(numberOfVertices-1));
+        logger.info("Average distance: l = " + l);
     }
 
     private void analyzeTransitivity () {
