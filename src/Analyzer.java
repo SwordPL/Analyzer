@@ -9,10 +9,9 @@ import org.pf.tools.cda.base.model.ClassInformation;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Analyzer {
-    static final Logger logger = LogManager.getLogger(Analyzer.class);
+    private static final Logger LOGGER = LogManager.getLogger(Analyzer.class);
 
     private final DirectedGraph<ClassInformation, DefaultEdge> graph;
 
@@ -29,7 +28,7 @@ public class Analyzer {
 
     private void analyzeAverageDistance () {
         //l
-        double sum = 0;
+        double sum = 0.0;
         AsUndirectedGraph<ClassInformation, DefaultEdge> undirected = new AsUndirectedGraph<>(graph);
         FloydWarshallShortestPaths<ClassInformation, DefaultEdge> pathFinder
                 = new FloydWarshallShortestPaths<>(undirected);
@@ -44,8 +43,8 @@ public class Analyzer {
             }
         }
         int numberOfVertices = undirected.vertexSet().size();
-        double l = sum * 1/(numberOfVertices*(numberOfVertices-1));
-        logger.info("Average distance: l = {}", l);
+        double l = sum * 1.0 / (numberOfVertices * (numberOfVertices - 1));
+        LOGGER.info("Average distance: l = {}", l);
     }
 
     private void analyzeTransitivity () {
@@ -70,7 +69,7 @@ public class Analyzer {
             }
         }
         double T = (double)numberOfTriangles/numberOfConnectedTriples;
-        logger.info("Transitivity: C = {}", T);
+        LOGGER.info("Transitivity: C = {}", T);
     }
 
     private void analyzeEfficiency() {
@@ -90,30 +89,47 @@ public class Analyzer {
         }
         int numberOfVertices = graph.vertexSet().size();
         double E = sum * 1/(numberOfVertices*(numberOfVertices-1));
-        logger.info("Efficiency: E = {}", E);
+        LOGGER.info("Efficiency: E = {}", E);
     }
 
     private void analyzeDistribution() {
-        Map<Integer, AtomicInteger> kSumMap = new HashMap<>();
-        Map<Integer, AtomicInteger> kInMap = new HashMap<>();
-        Map<Integer, AtomicInteger> kOutMap = new HashMap<>();
+        Map<Integer, Integer> kMap = new HashMap<>();
+        Map<Integer, Integer> kInMap = new HashMap<>();
+        Map<Integer, Integer> kOutMap = new HashMap<>();
+
         for (ClassInformation x: graph.vertexSet()) {
             int inDeg = graph.inDegreeOf(x);
             int outDeg = graph.outDegreeOf(x);
-            kSumMap.putIfAbsent(inDeg, new AtomicInteger(0));
-            kSumMap.get(inDeg).incrementAndGet();
-            kSumMap.putIfAbsent(outDeg, new AtomicInteger(0));
-            kSumMap.get(outDeg).incrementAndGet();
+            int deg = inDeg + outDeg;
 
-            kInMap.putIfAbsent(inDeg, new AtomicInteger(0));
-            kInMap.get(inDeg).incrementAndGet();
+            insertOrIncrement(kMap, deg);
+            insertOrIncrement(kInMap, inDeg);
+            insertOrIncrement(kOutMap, outDeg);
+        }
 
-            kOutMap.putIfAbsent(outDeg, new AtomicInteger(0));
-            kOutMap.get(outDeg).incrementAndGet();
-        }
-        for (Integer i : kSumMap.keySet()) {
-            System.out.println(i + ";" + kSumMap.get(i).get());
-        }
-        logger.info("Distribution: TBD");
+        Map<Integer, Double> normalizedKMap = getProbabilityDistributionMap(kMap);
+        Map<Integer, Double> normalizedKInMap = getProbabilityDistributionMap(kInMap);
+        Map<Integer, Double> normalizedKOutMap = getProbabilityDistributionMap(kOutMap);
+
+        LOGGER.info("Vertex degree distribution");
+        normalizedKMap.forEach((k, v) -> System.out.println(k + ";" + v));
+        LOGGER.info("In-vertex degree distribution");
+        normalizedKInMap.forEach((k, v) -> System.out.println(k + ";" + v));
+        LOGGER.info("Out-vertex degree distribution");
+        normalizedKOutMap.forEach((k, v) -> System.out.println(k + ";" + v));
+
+        LOGGER.info("Distribution: TBD");
+    }
+
+    private void insertOrIncrement(Map<Integer, Integer> kMap, int deg) {
+        if (!kMap.containsKey(deg)) kMap.put(deg, 1);
+        else kMap.put(deg, kMap.get(deg) + 1);
+    }
+
+    private Map<Integer, Double> getProbabilityDistributionMap(Map<Integer, Integer> kMap) {
+        Map<Integer, Double> normalizedKMap = new HashMap<>();
+        int sum = kMap.values().stream().mapToInt(k -> k).sum();
+        kMap.forEach((k, v) -> normalizedKMap.put(k, (double) v / sum));
+        return normalizedKMap;
     }
 }
