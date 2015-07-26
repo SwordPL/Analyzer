@@ -7,6 +7,9 @@ import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.pf.tools.cda.base.model.ClassInformation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Analyzer {
     static final Logger logger = LogManager.getLogger(Analyzer.class);
 
@@ -90,6 +93,14 @@ public class Analyzer {
     }
 
     private void analyzeDistribution() {
+        // k in
+        List<Integer> kInList = new ArrayList<>();
+        List<Integer> kOutList = new ArrayList<>();
+        for (ClassInformation x: graph.vertexSet()) {
+            kInList.add(graph.inDegreeOf(x));
+            kOutList.add(graph.outDegreeOf(x));
+        }
+
         logger.info("Distribution: TBD");
     }
 }
