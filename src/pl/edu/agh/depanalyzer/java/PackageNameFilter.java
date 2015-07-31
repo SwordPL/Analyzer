@@ -1,3 +1,5 @@
+package pl.edu.agh.depanalyzer.java;
+
 import org.pf.tools.cda.base.model.ClassPackage;
 import org.pf.tools.cda.base.model.processing.AClassPackageProcessor;
 

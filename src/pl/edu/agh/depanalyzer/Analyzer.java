@@ -1,21 +1,21 @@
+package pl.edu.agh.depanalyzer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.AsUndirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
-import org.pf.tools.cda.base.model.ClassInformation;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Analyzer {
+public class Analyzer<V, E> {
     private static final Logger LOGGER = LogManager.getLogger(Analyzer.class);
 
-    private final DirectedGraph<ClassInformation, DefaultEdge> graph;
+    private final DirectedGraph<V, E> graph;
 
-    public Analyzer(DirectedGraph<ClassInformation, DefaultEdge> graph) {
+    public Analyzer(DirectedGraph<V, E> graph) {
         this.graph = graph;
     }
 
@@ -29,13 +29,13 @@ public class Analyzer {
     private void analyzeAverageDistance () {
         //l
         double sum = 0.0;
-        AsUndirectedGraph<ClassInformation, DefaultEdge> undirected = new AsUndirectedGraph<>(graph);
-        FloydWarshallShortestPaths<ClassInformation, DefaultEdge> pathFinder
+        AsUndirectedGraph<V, E> undirected = new AsUndirectedGraph<>(graph);
+        FloydWarshallShortestPaths<V, E> pathFinder
                 = new FloydWarshallShortestPaths<>(undirected);
-        ConnectivityInspector<ClassInformation, DefaultEdge> connectivityInspector
+        ConnectivityInspector<V, E> connectivityInspector
                 = new ConnectivityInspector<>(undirected);
-        for (ClassInformation x: undirected.vertexSet()) {
-            for (ClassInformation y: undirected.vertexSet()) {
+        for (V x : undirected.vertexSet()) {
+            for (V y : undirected.vertexSet()) {
                 if (x.equals(y) || !connectivityInspector.pathExists(x, y)) {
                     continue;
                 }
@@ -51,9 +51,9 @@ public class Analyzer {
         //parameter C
         int numberOfConnectedTriples = 0;
         int numberOfTriangles = 0;
-        for (ClassInformation x: graph.vertexSet()) {
-            for (ClassInformation y: graph.vertexSet()) {
-                for (ClassInformation z: graph.vertexSet()) {
+        for (V x : graph.vertexSet()) {
+            for (V y : graph.vertexSet()) {
+                for (V z : graph.vertexSet()) {
                     if (x.equals(y) || y.equals(z) || z.equals(x)) {
                         continue;
                     }
@@ -76,11 +76,11 @@ public class Analyzer {
         //E
         double sum = 0;
 
-        FloydWarshallShortestPaths<ClassInformation, DefaultEdge> pathFinder = new FloydWarshallShortestPaths<>(graph);
-        ConnectivityInspector<ClassInformation, DefaultEdge> connectivityInspector
+        FloydWarshallShortestPaths<V, E> pathFinder = new FloydWarshallShortestPaths<>(graph);
+        ConnectivityInspector<V, E> connectivityInspector
                 = new ConnectivityInspector<>(graph);
-        for (ClassInformation x: graph.vertexSet()) {
-            for (ClassInformation y: graph.vertexSet()) {
+        for (V x : graph.vertexSet()) {
+            for (V y : graph.vertexSet()) {
                 if (x.equals(y) || !connectivityInspector.pathExists(x, y)) {
                     continue;
                 }
@@ -97,7 +97,7 @@ public class Analyzer {
         Map<Integer, Integer> kInMap = new HashMap<>();
         Map<Integer, Integer> kOutMap = new HashMap<>();
 
-        for (ClassInformation x: graph.vertexSet()) {
+        for (V x : graph.vertexSet()) {
             int inDeg = graph.inDegreeOf(x);
             int outDeg = graph.outDegreeOf(x);
             int deg = inDeg + outDeg;

@@ -1,9 +1,11 @@
+package pl.edu.agh.depanalyzer.java;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.pf.tools.cda.core.processing.IProgressMonitor;
 import org.pf.util.StopWatch;
 
-class ProgressMonitor implements IProgressMonitor {
+public class ProgressMonitor implements IProgressMonitor {
     static final Logger LOGGER = LogManager.getLogger(ProgressMonitor.class);
     private final StopWatch stopWatch = new StopWatch();
 
